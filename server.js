@@ -1,84 +1,97 @@
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const { Pool } = require('pg');
+const mongoose = require('mongoose');
 const path = require('path');
-const initDB = require('./db/init');
-
-// Auto-run schema on startup
-initDB();
+const { Category, MenuItem, Order } = require('./db/models');
+const seedDatabase = require('./db/seed');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ── DATABASE ──────────────────────────────────────────────
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
-
-// Test DB connection on startup
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error('❌ Database connection failed:', err.message);
-  } else {
-    console.log('✅ Database connected');
-    release();
-  }
-});
-
 // ── MIDDLEWARE ────────────────────────────────────────────
-app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ── DATABASE ──────────────────────────────────────────────
+mongoose.connect(process.env.MONGODB_URL)
+  .then(async () => {
+    console.log('✅ MongoDB connected');
+    await seedDatabase();
+  })
+  .catch(err => console.error('❌ MongoDB connection failed:', err.message));
+
 // ── ROUTES: MENU ──────────────────────────────────────────
 
-// GET /api/menu  — all categories with their items
+// GET /api/menu
 app.get('/api/menu', async (req, res) => {
   try {
-    const categories = await pool.query(
-      `SELECT * FROM categories ORDER BY display_order`
-    );
-    const items = await pool.query(
-      `SELECT * FROM menu_items WHERE is_available = TRUE ORDER BY subcategory, id`
-    );
+    const categories = await Category.find().sort('display_order');
+    const items = await MenuItem.find({ is_available: true });
 
-    const menu = categories.rows.map(cat => ({
-      ...cat,
-      items: items.rows.filter(item => item.category_id === cat.id),
+    const menu = categories.map(cat => ({
+      id: cat._id,
+      name: cat.name,
+      display_order: cat.display_order,
+      available_from: cat.available_from,
+      available_to: cat.available_to,
+      icon: cat.icon,
+      items: items
+        .filter(item => item.category_id.toString() === cat._id.toString())
+        .map(item => ({
+          id: item._id,
+          category_id: item.category_id,
+          subcategory: item.subcategory,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          is_veg: item.is_veg,
+          is_available: item.is_available,
+        })),
     }));
 
     res.json(menu);
   } catch (err) {
-    console.error('GET /api/menu error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Failed to load menu' });
   }
 });
 
 // GET /api/menu/search?q=paneer
 app.get('/api/menu/search', async (req, res) => {
-  const q = `%${req.query.q || ''}%`;
+  const q = req.query.q || '';
   try {
-    const result = await pool.query(
-      `SELECT mi.*, c.name AS category_name
-       FROM menu_items mi
-       JOIN categories c ON c.id = mi.category_id
-       WHERE mi.is_available = TRUE
-         AND (mi.name ILIKE $1 OR mi.description ILIKE $1)
-       ORDER BY mi.name LIMIT 30`,
-      [q]
-    );
-    res.json(result.rows);
+    const items = await MenuItem.find({
+      is_available: true,
+      $or: [
+        { name: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+      ],
+    }).limit(30);
+
+    const categories = await Category.find();
+    const result = items.map(item => {
+      const cat = categories.find(c => c._id.toString() === item.category_id.toString());
+      return {
+        id: item._id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        is_veg: item.is_veg,
+        subcategory: item.subcategory,
+        category_id: item.category_id,
+        category_name: cat ? cat.name : '',
+      };
+    });
+
+    res.json(result);
   } catch (err) {
-    console.error('GET /api/menu/search error:', err);
     res.status(500).json({ error: 'Search failed' });
   }
 });
 
 // ── ROUTES: ORDERS ────────────────────────────────────────
 
-// POST /api/orders  — place a new order
+// POST /api/orders
 app.post('/api/orders', async (req, res) => {
   const { room_number, guest_name, special_note, items } = req.body;
 
@@ -86,82 +99,42 @@ app.post('/api/orders', async (req, res) => {
     return res.status(400).json({ error: 'room_number and items are required' });
   }
 
-  const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-
-    // Calculate total
     const total = items.reduce((sum, i) => sum + (i.unit_price * i.quantity), 0);
 
-    // Insert order
-    const orderResult = await client.query(
-      `INSERT INTO orders (room_number, guest_name, special_note, total_amount)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [room_number, guest_name || null, special_note || null, total]
-    );
-    const order = orderResult.rows[0];
+    const order = new Order({
+      room_number,
+      guest_name: guest_name || null,
+      special_note: special_note || null,
+      total_amount: total,
+      items: items.map(i => ({
+        menu_item_id: i.menu_item_id,
+        item_name: i.item_name,
+        unit_price: i.unit_price,
+        quantity: i.quantity,
+        subtotal: i.unit_price * i.quantity,
+      })),
+    });
 
-    // Insert order items
-    for (const item of items) {
-      await client.query(
-        `INSERT INTO order_items (order_id, menu_item_id, item_name, unit_price, quantity)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [order.id, item.menu_item_id, item.item_name, item.unit_price, item.quantity]
-      );
-    }
-
-    await client.query('COMMIT');
-
-    // Return full order with items
-    const fullOrder = await getOrderById(pool, order.id);
-    res.status(201).json(fullOrder);
-
+    await order.save();
+    res.status(201).json(formatOrder(order));
   } catch (err) {
-    await client.query('ROLLBACK');
-    console.error('POST /api/orders error:', err);
+    console.error(err);
     res.status(500).json({ error: 'Failed to place order' });
-  } finally {
-    client.release();
   }
 });
 
-// GET /api/orders  — all orders (kitchen view), optional ?status=pending
+// GET /api/orders
 app.get('/api/orders', async (req, res) => {
   const { status, room } = req.query;
-  let where = 'WHERE 1=1';
-  const params = [];
-
-  if (status) {
-    params.push(status);
-    where += ` AND o.status = $${params.length}`;
-  }
-  if (room) {
-    params.push(room);
-    where += ` AND o.room_number ILIKE $${params.length}`;
-  }
+  const filter = {};
+  if (status) filter.status = status;
+  if (room) filter.room_number = { $regex: room, $options: 'i' };
 
   try {
-    const result = await pool.query(
-      `SELECT o.*,
-         json_agg(json_build_object(
-           'id', oi.id,
-           'menu_item_id', oi.menu_item_id,
-           'item_name', oi.item_name,
-           'unit_price', oi.unit_price,
-           'quantity', oi.quantity,
-           'subtotal', oi.subtotal
-         ) ORDER BY oi.id) AS items
-       FROM orders o
-       LEFT JOIN order_items oi ON oi.order_id = o.id
-       ${where}
-       GROUP BY o.id
-       ORDER BY o.created_at DESC
-       LIMIT 200`,
-      params
-    );
-    res.json(result.rows);
+    const orders = await Order.find(filter).sort({ createdAt: -1 }).limit(200);
+    res.json(orders.map(formatOrder));
   } catch (err) {
-    console.error('GET /api/orders error:', err);
     res.status(500).json({ error: 'Failed to fetch orders' });
   }
 });
@@ -169,94 +142,81 @@ app.get('/api/orders', async (req, res) => {
 // GET /api/orders/:id
 app.get('/api/orders/:id', async (req, res) => {
   try {
-    const order = await getOrderById(pool, req.params.id);
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Order not found' });
-    res.json(order);
+    res.json(formatOrder(order));
   } catch (err) {
-    console.error('GET /api/orders/:id error:', err);
     res.status(500).json({ error: 'Failed to fetch order' });
   }
 });
 
-// PATCH /api/orders/:id/status  — update order status
+// PATCH /api/orders/:id/status
 app.patch('/api/orders/:id/status', async (req, res) => {
   const { status } = req.body;
-  const validStatuses = ['pending', 'preparing', 'ready', 'delivered', 'cancelled'];
-
-  if (!validStatuses.includes(status)) {
-    return res.status(400).json({ error: 'Invalid status' });
-  }
+  const valid = ['pending','preparing','ready','delivered','cancelled'];
+  if (!valid.includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
   try {
-    const result = await pool.query(
-      `UPDATE orders SET status = $1, updated_at = NOW()
-       WHERE id = $2 RETURNING *`,
-      [status, req.params.id]
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: 'Order not found' });
-    res.json(result.rows[0]);
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+    res.json(formatOrder(order));
   } catch (err) {
-    console.error('PATCH /api/orders/:id/status error:', err);
     res.status(500).json({ error: 'Failed to update status' });
   }
 });
 
-// DELETE /api/orders/:id  — cancel order
-app.delete('/api/orders/:id', async (req, res) => {
-  try {
-    await pool.query(`UPDATE orders SET status='cancelled', updated_at=NOW() WHERE id=$1`, [req.params.id]);
-    res.json({ message: 'Order cancelled' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to cancel order' });
-  }
-});
-
-// ── ROUTES: STATS ─────────────────────────────────────────
+// GET /api/stats
 app.get('/api/stats', async (req, res) => {
   try {
-    const result = await pool.query(`
-      SELECT
-        COUNT(*) FILTER (WHERE status='pending')   AS pending,
-        COUNT(*) FILTER (WHERE status='preparing') AS preparing,
-        COUNT(*) FILTER (WHERE status='ready')     AS ready,
-        COUNT(*) FILTER (WHERE status='delivered') AS delivered,
-        COUNT(*)                                    AS total,
-        COALESCE(SUM(total_amount) FILTER (WHERE status='delivered'), 0) AS revenue
-      FROM orders
-      WHERE created_at >= CURRENT_DATE
-    `);
-    res.json(result.rows[0]);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [pending, preparing, ready, delivered, total, revenueResult] = await Promise.all([
+      Order.countDocuments({ status: 'pending', createdAt: { $gte: today } }),
+      Order.countDocuments({ status: 'preparing', createdAt: { $gte: today } }),
+      Order.countDocuments({ status: 'ready', createdAt: { $gte: today } }),
+      Order.countDocuments({ status: 'delivered', createdAt: { $gte: today } }),
+      Order.countDocuments({ createdAt: { $gte: today } }),
+      Order.aggregate([
+        { $match: { status: 'delivered', createdAt: { $gte: today } } },
+        { $group: { _id: null, total: { $sum: '$total_amount' } } },
+      ]),
+    ]);
+
+    res.json({
+      pending, preparing, ready, delivered, total,
+      revenue: revenueResult[0]?.total || 0,
+    });
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch stats' });
   }
 });
 
 // ── HELPER ────────────────────────────────────────────────
-async function getOrderById(pool, id) {
-  const result = await pool.query(
-    `SELECT o.*,
-       json_agg(json_build_object(
-         'id', oi.id,
-         'item_name', oi.item_name,
-         'unit_price', oi.unit_price,
-         'quantity', oi.quantity,
-         'subtotal', oi.subtotal
-       ) ORDER BY oi.id) AS items
-     FROM orders o
-     LEFT JOIN order_items oi ON oi.order_id = o.id
-     WHERE o.id = $1
-     GROUP BY o.id`,
-    [id]
-  );
-  return result.rows[0] || null;
+function formatOrder(order) {
+  return {
+    id: order._id,
+    room_number: order.room_number,
+    guest_name: order.guest_name,
+    status: order.status,
+    total_amount: order.total_amount,
+    special_note: order.special_note,
+    created_at: order.createdAt,
+    updated_at: order.updatedAt,
+    items: order.items,
+  };
 }
 
-// ── CATCH-ALL → index.html ────────────────────────────────
+// ── CATCH ALL ─────────────────────────────────────────────
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ── START ─────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`🍽️  Riversongs Order App running on port ${PORT}`);
+  console.log(`🍽️  Riversongs running on port ${PORT}`);
 });
