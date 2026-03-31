@@ -815,7 +815,7 @@ async function loadMenu() {
 function renderCategories() {
   const scroll = document.getElementById('cat-scroll');
   scroll.innerHTML = menuData.map(cat => `
-    <button class="cat-pill" id="cat-${cat.id}" onclick="selectCategory(${cat.id})">
+    <button class="cat-pill" id="cat-${cat.id}" onclick="selectCategory('${cat.id}')">
       <span class="cat-icon">${cat.icon || '🍽️'}</span>
       ${cat.name}
     </button>
@@ -823,7 +823,7 @@ function renderCategories() {
 }
 
 function selectCategory(catId) {
-  currentCategory = catId;
+  currentCategory = String(catId);
   currentSubFilter = 'All';
   document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
   const btn = document.getElementById(`cat-${catId}`);
@@ -833,7 +833,7 @@ function selectCategory(catId) {
 }
 
 function renderSubToggle() {
-  const cat = menuData.find(c => c.id === currentCategory);
+  const cat = menuData.find(c => String(c.id) === String(currentCategory));
   if (!cat) return;
   const subs = [...new Set(cat.items.map(i => i.subcategory).filter(Boolean))];
   const toggle = document.getElementById('sub-toggle');
@@ -853,7 +853,7 @@ function setSubFilter(sub) {
 }
 
 function renderMenuSection() {
-  const cat = menuData.find(c => c.id === currentCategory);
+  const cat = menuData.find(c => String(c.id) === String(currentCategory));
   if (!cat) return;
 
   let items = cat.items;
@@ -892,11 +892,11 @@ function renderCard(item) {
   const desc = item.description ? `<div class="card-desc">${item.description}</div>` : '';
   const ctrl = qty > 0
     ? `<div class="qty-ctrl">
-         <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+         <button class="qty-btn" onclick="updateQty('${item.id}',-1)">−</button>
          <span class="qty-num">${qty}</span>
-         <button class="qty-btn" onclick="updateQty(${item.id},1)">+</button>
+         <button class="qty-btn" onclick="updateQty('${item.id}',1)">+</button>
        </div>`
-    : `<button class="add-btn" onclick="updateQty(${item.id},1)">Add +</button>`;
+    : `<button class="add-btn" onclick="updateQty('${item.id}',1)">Add +</button>`;
 
   return `
     <div class="menu-card" id="card-${item.id}">
@@ -918,7 +918,7 @@ function updateQty(itemId, delta) {
   // Find item across all categories
   let item = null;
   for (const cat of menuData) {
-    item = cat.items.find(i => i.id === itemId);
+    item = cat.items.find(i => String(i.id) === String(itemId));
     if (item) break;
   }
   if (!item) return;
@@ -938,11 +938,11 @@ function updateQty(itemId, delta) {
     const desc = item.description ? `<div class="card-desc">${item.description}</div>` : '';
     const ctrl = qty > 0
       ? `<div class="qty-ctrl">
-           <button class="qty-btn" onclick="updateQty(${item.id},-1)">−</button>
+           <button class="qty-btn" onclick="updateQty('${item.id}',-1)">−</button>
            <span class="qty-num">${qty}</span>
-           <button class="qty-btn" onclick="updateQty(${item.id},1)">+</button>
+           <button class="qty-btn" onclick="updateQty('${item.id}',1)">+</button>
          </div>`
-      : `<button class="add-btn" onclick="updateQty(${item.id},1)">Add +</button>`;
+      : `<button class="add-btn" onclick="updateQty('${item.id}',1)">Add +</button>`;
     cardEl.innerHTML = `
       <div class="veg-dot ${dotClass}"></div>
       <div class="card-info">
@@ -1018,9 +1018,9 @@ function renderCartDrawer() {
         <div class="ci-sub">₹${e.item.price} × ${e.qty}</div>
       </div>
       <div class="qty-ctrl">
-        <button class="qty-btn" onclick="updateQty(${e.item.id},-1);renderCartDrawer();">−</button>
+        <button class="qty-btn" onclick="updateQty('${e.item.id}',-1);renderCartDrawer();">−</button>
         <span class="qty-num">${e.qty}</span>
-        <button class="qty-btn" onclick="updateQty(${e.item.id},1);renderCartDrawer();">+</button>
+        <button class="qty-btn" onclick="updateQty('${e.item.id}',1);renderCartDrawer();">+</button>
       </div>
       <div class="ci-price">₹${(e.item.price*e.qty).toFixed(0)}</div>
     </div>
@@ -1096,7 +1096,7 @@ function handleSearch(q) {
         results.style.display='none'; return;
       }
       results.innerHTML = items.map(item => `
-        <div class="s-item" onclick="jumpToItem(${item.category_id},${item.id})">
+        <div class="s-item" onclick="jumpToItem('${item.category_id}','${item.id}')">
           <div>
             <div class="s-name">${item.name}</div>
             <div class="s-cat">${item.category_name} · ${item.subcategory || ''}</div>
