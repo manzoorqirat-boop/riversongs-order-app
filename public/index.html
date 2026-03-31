@@ -633,6 +633,54 @@ nav{
   background:none;border:none;font-family:var(--font-body);
 }
 .km-cancel:hover{color:var(--text);}
+
+/* ── ADMIN VIEW ── */
+#admin-view{padding:20px 20px 100px;}
+.admin-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.admin-top h2{font-family:var(--font-display);font-size:1.4rem;color:var(--maroon);}
+.admin-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.admin-tab{padding:8px 18px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-size:.8rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .2s;}
+.admin-tab.active{background:var(--maroon);border-color:var(--maroon);color:var(--white);}
+.admin-section{display:none;}
+.admin-section.active{display:block;}
+.admin-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;}
+.admin-card-header{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.admin-card-name{font-weight:500;font-size:.92rem;color:var(--text);}
+.admin-card-sub{font-size:.75rem;color:var(--text-light);}
+.admin-card-price{font-family:var(--font-display);font-size:1rem;color:var(--maroon);font-weight:600;white-space:nowrap;}
+.admin-actions{display:flex;gap:6px;align-items:center;}
+.btn-edit{padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border-gold);background:transparent;font-size:.75rem;color:var(--gold);cursor:pointer;transition:all .2s;font-weight:500;}
+.btn-edit:hover{background:var(--gold-pale);}
+.btn-del{padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid #FFCDD2;background:transparent;font-size:.75rem;color:#c62828;cursor:pointer;transition:all .2s;font-weight:500;}
+.btn-del:hover{background:#FFEBEE;}
+.btn-toggle{padding:6px 12px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:transparent;font-size:.75rem;cursor:pointer;transition:all .2s;font-weight:500;}
+.btn-toggle.available{border-color:#C8E6C9;color:#2e7d32;}
+.btn-toggle.unavailable{border-color:#FFCDD2;color:#c62828;}
+.add-new-btn{padding:10px 20px;background:var(--maroon);color:var(--white);border:none;border-radius:20px;font-family:var(--font-body);font-size:.82rem;font-weight:500;cursor:pointer;transition:background .2s;}
+.add-new-btn:hover{background:var(--maroon-light);}
+.cat-group-label{font-family:var(--font-display);font-size:1rem;color:var(--maroon);margin:18px 0 8px;font-weight:600;}
+
+/* Admin Modal */
+#admin-modal{position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
+.am-box{background:var(--white);border-radius:var(--radius);padding:24px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;}
+.am-box h3{font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);margin-bottom:16px;}
+.am-field{margin-bottom:12px;}
+.am-field label{display:block;font-size:.78rem;font-weight:500;color:var(--text-mid);margin-bottom:4px;}
+.am-field input,.am-field select,.am-field textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.88rem;outline:none;transition:border-color .2s;color:var(--text);background:var(--white);}
+.am-field input:focus,.am-field select:focus,.am-field textarea:focus{border-color:var(--maroon);}
+.am-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.am-btns{display:flex;gap:10px;margin-top:16px;}
+.am-save{flex:1;padding:12px;background:var(--maroon);color:var(--white);border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.9rem;font-weight:500;cursor:pointer;transition:background .2s;}
+.am-save:hover{background:var(--maroon-light);}
+.am-cancel-btn{flex:1;padding:12px;background:transparent;color:var(--text-mid);border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.9rem;cursor:pointer;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;}
+.toggle-label{font-size:.85rem;color:var(--text);}
+.toggle-switch{position:relative;width:44px;height:24px;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:12px;cursor:pointer;transition:.3s;}
+.toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+input:checked+.toggle-slider{background:var(--maroon);}
+input:checked+.toggle-slider:before{transform:translateX(20px);}
 </style>
 </head>
 <body>
@@ -671,6 +719,7 @@ nav{
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('menu')" id="tab-menu">Menu</button>
     <button class="nav-tab" onclick="openKitchenModal()" id="tab-kitchen">Kitchen</button>
+    <button class="nav-tab" onclick="openAdminModal()" id="tab-admin">Admin</button>
   </div>
   <div class="nav-right">
     <button class="cart-btn" onclick="openCart()" id="cart-btn" style="display:none;">
@@ -723,6 +772,58 @@ nav{
   <p style="margin-top:8px;font-size:.8rem;color:var(--text-light);">GST will be added to your bill at checkout.</p>
   <br/>
   <button class="new-order-btn" onclick="newOrder()">Order More Items</button>
+</div>
+
+<!-- ADMIN PIN MODAL -->
+<div id="admin-modal" style="display:none;">
+  <div class="km-box">
+    <h3>Admin Access</h3>
+    <p>Enter the admin PIN to manage the menu</p>
+    <input class="km-input" type="password" id="admin-pin" placeholder="Enter Admin PIN" maxlength="6"/>
+    <button class="km-btn" onclick="verifyAdminPin()">Access Admin</button>
+    <button class="km-cancel" onclick="cancelAdminAccess()">Cancel</button>
+  </div>
+</div>
+
+<!-- ADMIN ITEM/CATEGORY MODAL -->
+<div id="admin-item-modal" style="display:none;">
+  <div style="position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:950;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);">
+    <div class="am-box">
+      <h3 id="am-title">Add Item</h3>
+      <div id="am-fields"></div>
+      <div class="am-btns">
+        <button class="am-cancel-btn" onclick="closeItemModal()">Cancel</button>
+        <button class="am-save" onclick="saveItem()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="admin-view" style="display:none;">
+  <div class="admin-top">
+    <h2>⚙️ Menu Admin</h2>
+  </div>
+  <div class="admin-tabs">
+    <button class="admin-tab active" onclick="switchAdminTab('items')" id="atab-items">Menu Items</button>
+    <button class="admin-tab" onclick="switchAdminTab('categories')" id="atab-categories">Categories</button>
+  </div>
+
+  <!-- Items Section -->
+  <div class="admin-section active" id="asec-items">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+      <button class="add-new-btn" onclick="openAddItem()">+ Add Item</button>
+    </div>
+    <div id="admin-items-list"></div>
+  </div>
+
+  <!-- Categories Section -->
+  <div class="admin-section" id="asec-categories">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+      <button class="add-new-btn" onclick="openAddCategory()">+ Add Category</button>
+    </div>
+    <div id="admin-cats-list"></div>
+  </div>
 </div>
 
 <!-- KITCHEN VIEW -->
@@ -1130,12 +1231,14 @@ function showView(view) {
   document.getElementById('menu-view').style.display = view==='menu' ? 'block' : 'none';
   document.getElementById('confirm-view').style.display = view==='confirm' ? 'flex' : 'none';
   document.getElementById('kitchen-view').style.display = view==='kitchen' ? 'block' : 'none';
-  document.getElementById('room-bar').style.display = view==='kitchen' ? 'none' : 'flex';
+  document.getElementById('admin-view').style.display = view==='admin' ? 'block' : 'none';
+  document.getElementById('room-bar').style.display = (view==='kitchen'||view==='admin') ? 'none' : 'flex';
   document.getElementById('cart-bar').classList.remove('visible');
 
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (view==='menu' || view==='confirm') document.getElementById('tab-menu').classList.add('active');
   if (view==='kitchen') document.getElementById('tab-kitchen').classList.add('active');
+  if (view==='admin') document.getElementById('tab-admin').classList.add('active');
 
   if (view==='menu') updateCartUI();
   if (view==='kitchen') loadKitchenOrders();
@@ -1283,6 +1386,283 @@ async function updateStatus(orderId, status) {
   } catch(e) {
     toast('Failed to update order status.');
   }
+}
+
+// ── ADMIN ─────────────────────────────────────────────────
+const ADMIN_PIN_LOCAL = '9999'; // must match server ADMIN_PIN env var
+let adminPin = '';
+let adminData = { categories: [], menu: [] };
+let editingItem = null;
+let editingCat = null;
+
+function openAdminModal() {
+  document.getElementById('admin-modal').style.display='flex';
+  document.getElementById('admin-pin').value='';
+  setTimeout(() => document.getElementById('admin-pin').focus(), 100);
+}
+function cancelAdminAccess() {
+  document.getElementById('admin-modal').style.display='none';
+}
+function verifyAdminPin() {
+  const pin = document.getElementById('admin-pin').value;
+  adminPin = pin;
+  document.getElementById('admin-modal').style.display='none';
+  showView('admin');
+  loadAdminData();
+}
+document.getElementById('admin-pin').addEventListener('keyup', e => {
+  if (e.key==='Enter') verifyAdminPin();
+});
+
+async function loadAdminData() {
+  try {
+    const res = await fetch('/api/admin/menu', { headers: { 'x-admin-pin': adminPin } });
+    if (res.status === 401) { toast('Invalid admin PIN'); showView('menu'); return; }
+    adminData = await res.json();
+    renderAdminItems();
+    renderAdminCategories();
+  } catch(e) { toast('Failed to load admin data'); }
+}
+
+function switchAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`atab-${tab}`).classList.add('active');
+  document.getElementById(`asec-${tab}`).classList.add('active');
+}
+
+function renderAdminItems() {
+  const container = document.getElementById('admin-items-list');
+  if (!adminData.menu || adminData.menu.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">No menu items found.</p>';
+    return;
+  }
+  let html = '';
+  for (const cat of adminData.menu) {
+    if (!cat.items || cat.items.length === 0) continue;
+    html += `<div class="cat-group-label">${cat.name}</div>`;
+    for (const item of cat.items) {
+      const avail = item.is_available;
+      html += `
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <div style="flex:1;min-width:0;">
+              <div class="admin-card-name">${item.name}</div>
+              <div class="admin-card-sub">${item.subcategory || ''} · ${item.is_veg ? '🟢 Veg' : '🔴 Non-Veg'}</div>
+            </div>
+            <div class="admin-card-price">₹${Number(item.price).toFixed(0)}</div>
+            <div class="admin-actions">
+              <button class="btn-toggle ${avail?'available':'unavailable'}" onclick="toggleAvailability('${item.id}', ${!avail})">
+                ${avail ? '✓ On' : '✕ Off'}
+              </button>
+              <button class="btn-edit" onclick="openEditItem('${item.id}')">Edit</button>
+              <button class="btn-del" onclick="deleteItem('${item.id}', '${item.name.replace(/'/g,"\\'")}')">Del</button>
+            </div>
+          </div>
+        </div>`;
+    }
+  }
+  container.innerHTML = html || '<p style="color:var(--text-light);text-align:center;padding:30px;">No items yet.</p>';
+}
+
+function renderAdminCategories() {
+  const container = document.getElementById('admin-cats-list');
+  if (!adminData.categories || adminData.categories.length === 0) {
+    container.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:30px;">No categories found.</p>';
+    return;
+  }
+  container.innerHTML = adminData.categories.map(cat => `
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <div style="flex:1;">
+          <div class="admin-card-name">${cat.icon || '🍽️'} ${cat.name}</div>
+          <div class="admin-card-sub">Order: ${cat.display_order}</div>
+        </div>
+        <div class="admin-actions">
+          <button class="btn-edit" onclick="openEditCategory('${cat.id}')">Edit</button>
+          <button class="btn-del" onclick="deleteCategory('${cat.id}', '${cat.name.replace(/'/g,"\\'")}')">Del</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── ITEM MODAL ────────────────────────────────────────────
+function openAddItem() {
+  editingItem = null;
+  document.getElementById('am-title').textContent = 'Add Menu Item';
+  document.getElementById('am-fields').innerHTML = itemFormHTML(null);
+  document.getElementById('admin-item-modal').style.display = 'block';
+}
+
+function openEditItem(itemId) {
+  let found = null;
+  for (const cat of adminData.menu) {
+    found = cat.items.find(i => String(i.id) === String(itemId));
+    if (found) break;
+  }
+  if (!found) return;
+  editingItem = found;
+  document.getElementById('am-title').textContent = 'Edit Menu Item';
+  document.getElementById('am-fields').innerHTML = itemFormHTML(found);
+  document.getElementById('admin-item-modal').style.display = 'block';
+}
+
+function itemFormHTML(item) {
+  const catOptions = adminData.categories.map(c =>
+    `<option value="${c.id}" ${item && String(item.category_id) === String(c.id) ? 'selected' : ''}>${c.name}</option>`
+  ).join('');
+  return `
+    <div class="am-field"><label>Category *</label>
+      <select id="af-cat">${catOptions}</select></div>
+    <div class="am-field"><label>Item Name *</label>
+      <input id="af-name" value="${item?.name || ''}" placeholder="e.g. Butter Chicken"/></div>
+    <div class="am-field"><label>Description</label>
+      <input id="af-desc" value="${item?.description || ''}" placeholder="Short description"/></div>
+    <div class="am-row">
+      <div class="am-field"><label>Price (₹) *</label>
+        <input id="af-price" type="number" value="${item?.price || ''}" placeholder="0"/></div>
+      <div class="am-field"><label>Subcategory</label>
+        <input id="af-sub" value="${item?.subcategory || ''}" placeholder="e.g. Starters"/></div>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Vegetarian</span>
+      <label class="toggle-switch"><input type="checkbox" id="af-veg" ${item?.is_veg ? 'checked' : ''}><span class="toggle-slider"></span></label>
+    </div>
+    <div class="toggle-row">
+      <span class="toggle-label">Available</span>
+      <label class="toggle-switch"><input type="checkbox" id="af-avail" ${!item || item.is_available ? 'checked' : ''}><span class="toggle-slider"></span></label>
+    </div>`;
+}
+
+async function toggleAvailability(itemId, newVal) {
+  try {
+    const res = await fetch(`/api/admin/items/${itemId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin },
+      body: JSON.stringify({ is_available: newVal }),
+    });
+    if (!res.ok) { toast('Failed to update'); return; }
+    toast(newVal ? '✅ Item enabled' : '⚠️ Item hidden from menu');
+    await loadAdminData();
+    await loadMenu();
+  } catch(e) { toast('Update failed'); }
+}
+
+async function deleteItem(itemId, name) {
+  if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+  try {
+    const res = await fetch(`/api/admin/items/${itemId}`, { method: 'DELETE', headers: { 'x-admin-pin': adminPin } });
+    if (!res.ok) { const d = await res.json(); toast(d.error || 'Failed'); return; }
+    toast('🗑️ Item deleted');
+    await loadAdminData();
+    await loadMenu();
+  } catch(e) { toast('Delete failed'); }
+}
+
+function closeItemModal() {
+  document.getElementById('admin-item-modal').style.display = 'none';
+  editingItem = null;
+  editingCat = null;
+}
+
+// ── CATEGORY MODAL ────────────────────────────────────────
+function openAddCategory() {
+  editingCat = null;
+  document.getElementById('am-title').textContent = 'Add Category';
+  document.getElementById('am-fields').innerHTML = catFormHTML(null);
+  document.getElementById('admin-item-modal').style.display = 'block';
+}
+
+function openEditCategory(catId) {
+  const cat = adminData.categories.find(c => String(c.id) === String(catId));
+  if (!cat) return;
+  editingCat = cat;
+  editingItem = null;
+  document.getElementById('am-title').textContent = 'Edit Category';
+  document.getElementById('am-fields').innerHTML = catFormHTML(cat);
+  document.getElementById('admin-item-modal').style.display = 'block';
+}
+
+function catFormHTML(cat) {
+  return `
+    <div class="am-field"><label>Category Name *</label>
+      <input id="af-catname" value="${cat?.name || ''}" placeholder="e.g. Beverages"/></div>
+    <div class="am-row">
+      <div class="am-field"><label>Icon (emoji)</label>
+        <input id="af-icon" value="${cat?.icon || '🍽️'}" placeholder="🍽️"/></div>
+      <div class="am-field"><label>Display Order</label>
+        <input id="af-order" type="number" value="${cat?.display_order || 99}" placeholder="1"/></div>
+    </div>`;
+}
+
+async function saveItem() {
+  // Check if saving category or item
+  const catNameEl = document.getElementById('af-catname');
+  if (catNameEl) {
+    await saveCategoryForm();
+  } else {
+    await saveItemForm();
+  }
+}
+
+async function saveItemForm() {
+  const name = document.getElementById('af-name').value.trim();
+  const price = parseFloat(document.getElementById('af-price').value);
+  const category_id = document.getElementById('af-cat').value;
+  if (!name || !price || !category_id) { toast('Name, price and category are required'); return; }
+
+  const body = {
+    category_id,
+    name,
+    description: document.getElementById('af-desc').value.trim(),
+    price,
+    subcategory: document.getElementById('af-sub').value.trim(),
+    is_veg: document.getElementById('af-veg').checked,
+    is_available: document.getElementById('af-avail').checked,
+  };
+
+  try {
+    const url = editingItem ? `/api/admin/items/${editingItem.id}` : '/api/admin/items';
+    const method = editingItem ? 'PATCH' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin }, body: JSON.stringify(body) });
+    if (!res.ok) { const d = await res.json(); toast(d.error || 'Failed'); return; }
+    closeItemModal();
+    toast(editingItem ? '✅ Item updated!' : '✅ Item added!');
+    await loadAdminData();
+    await loadMenu();
+  } catch(e) { toast('Save failed'); }
+}
+
+async function saveCategoryForm() {
+  const name = document.getElementById('af-catname').value.trim();
+  if (!name) { toast('Category name is required'); return; }
+  const body = {
+    name,
+    icon: document.getElementById('af-icon').value.trim() || '🍽️',
+    display_order: parseInt(document.getElementById('af-order').value) || 99,
+  };
+  try {
+    const url = editingCat ? `/api/admin/categories/${editingCat.id}` : '/api/admin/categories';
+    const method = editingCat ? 'PATCH' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', 'x-admin-pin': adminPin }, body: JSON.stringify(body) });
+    if (!res.ok) { const d = await res.json(); toast(d.error || 'Failed'); return; }
+    closeItemModal();
+    toast(editingCat ? '✅ Category updated!' : '✅ Category added!');
+    await loadAdminData();
+    await loadMenu();
+  } catch(e) { toast('Save failed'); }
+}
+
+async function deleteCategory(catId, name) {
+  if (!confirm(`Delete category "${name}"? Only possible if it has no items.`)) return;
+  try {
+    const res = await fetch(`/api/admin/categories/${catId}`, { method: 'DELETE', headers: { 'x-admin-pin': adminPin } });
+    const d = await res.json();
+    if (!res.ok) { toast(d.error || 'Failed'); return; }
+    toast('🗑️ Category deleted');
+    await loadAdminData();
+    await loadMenu();
+  } catch(e) { toast('Delete failed'); }
 }
 
 // ── TOAST ─────────────────────────────────────────────────
