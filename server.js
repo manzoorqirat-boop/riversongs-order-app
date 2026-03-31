@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // ── DATABASE ──────────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URL)
+mongoose.connect(process.env.MONGO_URL)
   .then(async () => {
     console.log('✅ MongoDB connected');
     await seedDatabase();
