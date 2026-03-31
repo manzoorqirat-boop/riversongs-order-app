@@ -7,6 +7,7 @@ const seedDatabase = require('./db/seed');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ADMIN_PIN = process.env.ADMIN_PIN || '9999';
 
 // ── MIDDLEWARE ────────────────────────────────────────────
 app.use(express.json());
@@ -20,9 +21,16 @@ mongoose.connect(process.env.MONGO_URL)
   })
   .catch(err => console.error('❌ MongoDB connection failed:', err.message));
 
+// ── ADMIN PIN CHECK MIDDLEWARE ────────────────────────────
+function requireAdmin(req, res, next) {
+  const pin = req.headers['x-admin-pin'];
+  if (pin !== ADMIN_PIN) return res.status(401).json({ error: 'Unauthorized' });
+  next();
+}
+
 // ── ROUTES: MENU ──────────────────────────────────────────
 
-// GET /api/menu
+// GET /api/menu  (customers - only available items)
 app.get('/api/menu', async (req, res) => {
   try {
     const categories = await Category.find().sort('display_order');
@@ -53,6 +61,117 @@ app.get('/api/menu', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to load menu' });
+  }
+});
+
+// GET /api/admin/menu  (admin - all items including unavailable)
+app.get('/api/admin/menu', requireAdmin, async (req, res) => {
+  try {
+    const categories = await Category.find().sort('display_order');
+    const items = await MenuItem.find();
+
+    const menu = categories.map(cat => ({
+      id: cat._id,
+      name: cat.name,
+      display_order: cat.display_order,
+      icon: cat.icon,
+      items: items
+        .filter(item => item.category_id.toString() === cat._id.toString())
+        .map(item => ({
+          id: item._id,
+          category_id: item.category_id,
+          subcategory: item.subcategory,
+          name: item.name,
+          description: item.description,
+          price: item.price,
+          is_veg: item.is_veg,
+          is_available: item.is_available,
+        })),
+    }));
+
+    res.json({ categories: categories.map(c => ({ id: c._id, name: c.name, display_order: c.display_order, icon: c.icon })), menu });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load admin menu' });
+  }
+});
+
+// ── ADMIN: CATEGORIES ─────────────────────────────────────
+
+// POST /api/admin/categories
+app.post('/api/admin/categories', requireAdmin, async (req, res) => {
+  try {
+    const { name, icon, display_order } = req.body;
+    if (!name) return res.status(400).json({ error: 'name is required' });
+    const cat = new Category({ name, icon: icon || '🍽️', display_order: display_order || 99 });
+    await cat.save();
+    res.status(201).json({ id: cat._id, name: cat.name, icon: cat.icon, display_order: cat.display_order });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create category' });
+  }
+});
+
+// PATCH /api/admin/categories/:id
+app.patch('/api/admin/categories/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, icon, display_order } = req.body;
+    const cat = await Category.findByIdAndUpdate(req.params.id, { name, icon, display_order }, { new: true });
+    if (!cat) return res.status(404).json({ error: 'Category not found' });
+    res.json({ id: cat._id, name: cat.name, icon: cat.icon, display_order: cat.display_order });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update category' });
+  }
+});
+
+// DELETE /api/admin/categories/:id
+app.delete('/api/admin/categories/:id', requireAdmin, async (req, res) => {
+  try {
+    const count = await MenuItem.countDocuments({ category_id: req.params.id });
+    if (count > 0) return res.status(400).json({ error: `Cannot delete — ${count} items exist in this category` });
+    await Category.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete category' });
+  }
+});
+
+// ── ADMIN: MENU ITEMS ─────────────────────────────────────
+
+// POST /api/admin/items
+app.post('/api/admin/items', requireAdmin, async (req, res) => {
+  try {
+    const { category_id, name, description, price, subcategory, is_veg, is_available } = req.body;
+    if (!category_id || !name || price == null) return res.status(400).json({ error: 'category_id, name, price required' });
+    const item = new MenuItem({ category_id, name, description, price, subcategory, is_veg: !!is_veg, is_available: is_available !== false });
+    await item.save();
+    res.status(201).json({ id: item._id, ...req.body });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to create item' });
+  }
+});
+
+// PATCH /api/admin/items/:id
+app.patch('/api/admin/items/:id', requireAdmin, async (req, res) => {
+  try {
+    const { name, description, price, subcategory, is_veg, is_available, category_id } = req.body;
+    const item = await MenuItem.findByIdAndUpdate(
+      req.params.id,
+      { name, description, price, subcategory, is_veg, is_available, category_id },
+      { new: true }
+    );
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    res.json({ id: item._id, name: item.name, description: item.description, price: item.price, subcategory: item.subcategory, is_veg: item.is_veg, is_available: item.is_available, category_id: item.category_id });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to update item' });
+  }
+});
+
+// DELETE /api/admin/items/:id
+app.delete('/api/admin/items/:id', requireAdmin, async (req, res) => {
+  try {
+    await MenuItem.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to delete item' });
   }
 });
 
