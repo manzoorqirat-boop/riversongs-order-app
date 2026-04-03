@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const { Category, MenuItem, Order } = require('./db/models');
+const { Category, MenuItem, Order, Guest, Bill } = require('./db/models');
 const seedDatabase = require('./db/seed');
 
 const app = express();
@@ -329,6 +329,158 @@ function formatOrder(order) {
     items: order.items,
   };
 }
+
+// ── GUESTS ────────────────────────────────────────────────
+
+// GET /api/guests — all checked-in guests
+app.get('/api/guests', async (req, res) => {
+  try {
+    const { status, room } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (room) filter.room_number = { $regex: room, $options: 'i' };
+    const guests = await Guest.find(filter).sort({ createdAt: -1 }).limit(200);
+    res.json(guests);
+  } catch (err) { res.status(500).json({ error: 'Failed to fetch guests' }); }
+});
+
+// POST /api/guests — check in a guest
+app.post('/api/guests', async (req, res) => {
+  try {
+    const { room_number, guest_name, phone, id_proof, adults, children, room_rate, notes } = req.body;
+    if (!room_number || !guest_name) return res.status(400).json({ error: 'room_number and guest_name required' });
+    const guest = new Guest({ room_number, guest_name, phone, id_proof, adults: adults || 1, children: children || 0, room_rate: room_rate || 0, notes });
+    await guest.save();
+    res.status(201).json(guest);
+  } catch (err) { res.status(500).json({ error: 'Failed to check in guest' }); }
+});
+
+// GET /api/guests/:id
+app.get('/api/guests/:id', async (req, res) => {
+  try {
+    const guest = await Guest.findById(req.params.id);
+    if (!guest) return res.status(404).json({ error: 'Guest not found' });
+    res.json(guest);
+  } catch (err) { res.status(500).json({ error: 'Failed to fetch guest' }); }
+});
+
+// PATCH /api/guests/:id — update or check out
+app.patch('/api/guests/:id', async (req, res) => {
+  try {
+    const updates = { ...req.body };
+    if (updates.status === 'checked_out' && !updates.check_out) updates.check_out = new Date();
+    const guest = await Guest.findByIdAndUpdate(req.params.id, updates, { new: true });
+    if (!guest) return res.status(404).json({ error: 'Guest not found' });
+    res.json(guest);
+  } catch (err) { res.status(500).json({ error: 'Failed to update guest' }); }
+});
+
+// DELETE /api/guests/:id
+app.delete('/api/guests/:id', requireAdmin, async (req, res) => {
+  try {
+    await Guest.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) { res.status(500).json({ error: 'Failed to delete guest' }); }
+});
+
+// GET /api/rooms/:room/orders — all orders for a room
+app.get('/api/rooms/:room/orders', async (req, res) => {
+  try {
+    const orders = await Order.find({ room_number: req.params.room }).sort({ createdAt: -1 });
+    const total = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
+    res.json({ orders: orders.map(formatOrder), food_total: total });
+  } catch (err) { res.status(500).json({ error: 'Failed to fetch room orders' }); }
+});
+
+// ── BILLS ────────────────────────────────────────────────
+
+// POST /api/bills — generate a bill
+app.post('/api/bills', async (req, res) => {
+  try {
+    const { guest_id, room_number, other_charges, discount, payment_mode, gst_rate, notes } = req.body;
+
+    const guest = await Guest.findById(guest_id);
+    if (!guest) return res.status(404).json({ error: 'Guest not found' });
+
+    // Calculate nights stayed
+    const checkIn = new Date(guest.check_in);
+    const checkOut = new Date();
+    const nights = Math.max(1, Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24)));
+    const room_charges = (guest.room_rate || 0) * nights;
+
+    // Sum all food orders for this room
+    const orders = await Order.find({ room_number: room_number, status: { $ne: 'cancelled' } });
+    const food_charges = orders.reduce((s, o) => s + (o.total_amount || 0), 0);
+
+    const subtotal = room_charges + food_charges + Number(other_charges || 0) - Number(discount || 0);
+    const gstRate = Number(gst_rate || 18);
+    const gst_amount = parseFloat(((subtotal * gstRate) / 100).toFixed(2));
+    const total_amount = parseFloat((subtotal + gst_amount).toFixed(2));
+
+    const bill_number = `BILL-${Date.now().toString().slice(-8)}`;
+
+    const bill = new Bill({
+      bill_number,
+      guest_id: guest._id,
+      room_number,
+      guest_name: guest.guest_name,
+      check_in: guest.check_in,
+      check_out: checkOut,
+      room_charges,
+      food_charges,
+      other_charges: Number(other_charges || 0),
+      subtotal,
+      gst_rate: gstRate,
+      gst_amount,
+      discount: Number(discount || 0),
+      total_amount,
+      payment_mode: payment_mode || 'Cash',
+      payment_status: 'pending',
+      orders: orders.map(o => o._id),
+      notes,
+    });
+
+    await bill.save();
+
+    // Mark guest as checked out
+    guest.status = 'checked_out';
+    guest.check_out = checkOut;
+    await guest.save();
+
+    res.status(201).json({ ...bill.toObject(), nights, orders: orders.map(formatOrder) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to generate bill' });
+  }
+});
+
+// GET /api/bills
+app.get('/api/bills', async (req, res) => {
+  try {
+    const bills = await Bill.find().sort({ createdAt: -1 }).limit(100);
+    res.json(bills);
+  } catch (err) { res.status(500).json({ error: 'Failed to fetch bills' }); }
+});
+
+// GET /api/bills/:id
+app.get('/api/bills/:id', async (req, res) => {
+  try {
+    const bill = await Bill.findById(req.params.id);
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+    const orders = await Order.find({ _id: { $in: bill.orders } });
+    res.json({ ...bill.toObject(), orders: orders.map(formatOrder) });
+  } catch (err) { res.status(500).json({ error: 'Failed to fetch bill' }); }
+});
+
+// PATCH /api/bills/:id/pay — mark as paid
+app.patch('/api/bills/:id/pay', async (req, res) => {
+  try {
+    const { payment_mode } = req.body;
+    const bill = await Bill.findByIdAndUpdate(req.params.id, { payment_status: 'paid', payment_mode: payment_mode || 'Cash' }, { new: true });
+    if (!bill) return res.status(404).json({ error: 'Bill not found' });
+    res.json(bill);
+  } catch (err) { res.status(500).json({ error: 'Failed to update payment' }); }
+});
 
 // ── CATCH ALL ─────────────────────────────────────────────
 app.get('*', (req, res) => {
