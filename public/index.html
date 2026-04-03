@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Riversongs — Room Dining</title>
+<title>Riversongs — Hotel Management</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
@@ -660,8 +660,17 @@ nav{
 .add-new-btn:hover{background:var(--maroon-light);}
 .cat-group-label{font-family:var(--font-display);font-size:1rem;color:var(--maroon);margin:18px 0 8px;font-weight:600;}
 
-/* Admin Modal */
-#admin-modal{position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:900;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);}
+/* ── KITCHEN MODAL ── */
+#kitchen-modal,#admin-modal,#billing-modal{
+  position:fixed;inset:0;background:rgba(44,24,16,.6);
+  z-index:800;display:flex;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(3px);
+}
+#upi-overlay{
+  position:fixed;inset:0;background:rgba(44,24,16,.75);
+  z-index:950;display:flex;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
 .am-box{background:var(--white);border-radius:var(--radius);padding:24px;max-width:420px;width:100%;max-height:90vh;overflow-y:auto;}
 .am-box h3{font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);margin-bottom:16px;}
 .am-field{margin-bottom:12px;}
@@ -681,6 +690,100 @@ nav{
 .toggle-slider:before{content:'';position:absolute;height:18px;width:18px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
 input:checked+.toggle-slider{background:var(--maroon);}
 input:checked+.toggle-slider:before{transform:translateX(20px);}
+
+/* ── BILLING / GUEST CSS ── */
+#billing-view{padding:20px 20px 100px;}
+.billing-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.billing-tab{padding:8px 18px;border-radius:20px;border:1.5px solid var(--border);background:transparent;font-size:.8rem;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .2s;}
+.billing-tab.active{background:var(--maroon);border-color:var(--maroon);color:var(--white);}
+.billing-section{display:none;}
+.billing-section.active{display:block;}
+.billing-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.billing-top h2{font-family:var(--font-display);font-size:1.4rem;color:var(--maroon);}
+
+/* Guest cards */
+.guest-card{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden;transition:box-shadow .2s;}
+.guest-card:hover{box-shadow:var(--shadow);}
+.guest-card.checked-in{border-left:4px solid #2e7d32;}
+.guest-card.checked-out{border-left:4px solid #9e9e9e;opacity:.75;}
+.gc-header{padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
+.gc-room{font-family:var(--font-display);font-size:1.15rem;color:var(--maroon);}
+.gc-name{font-size:.85rem;font-weight:500;color:var(--text);}
+.gc-meta{font-size:.72rem;color:var(--text-light);margin-top:2px;}
+.gc-footer{padding:10px 16px;background:var(--cream);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.gc-rate{font-family:var(--font-display);font-size:1rem;color:var(--maroon);}
+.gc-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.btn-checkout{padding:7px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--gold);background:var(--gold-pale);font-size:.75rem;color:var(--maroon);cursor:pointer;transition:all .2s;font-weight:600;}
+.btn-checkout:hover{background:var(--gold);color:var(--maroon-dark);}
+.btn-view-orders{padding:7px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border-gold);background:transparent;font-size:.75rem;color:var(--text-mid);cursor:pointer;transition:all .2s;font-weight:500;}
+.btn-view-orders:hover{border-color:var(--maroon);color:var(--maroon);}
+
+/* Bill preview */
+.bill-preview{background:var(--white);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;margin-top:14px;}
+.bill-header-section{text-align:center;padding-bottom:16px;border-bottom:2px dashed var(--border-gold);margin-bottom:16px;}
+.bill-hotel-name{font-family:var(--font-display);font-size:1.6rem;color:var(--maroon);}
+.bill-hotel-sub{font-size:.75rem;color:var(--text-light);letter-spacing:.08em;text-transform:uppercase;}
+.bill-info-row{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:6px;}
+.bill-info-label{color:var(--text-light);}
+.bill-info-val{font-weight:500;color:var(--text);text-align:right;}
+.bill-divider{border:none;border-top:1px dashed var(--border-gold);margin:12px 0;}
+.bill-line-item{display:flex;justify-content:space-between;font-size:.82rem;padding:5px 0;border-bottom:1px solid var(--cream-dark);}
+.bill-line-item:last-child{border-bottom:none;}
+.bill-line-name{color:var(--text-mid);flex:1;}
+.bill-line-qty{color:var(--text-light);font-size:.75rem;margin:0 8px;}
+.bill-line-price{font-weight:500;color:var(--text);white-space:nowrap;}
+.bill-subtotal-row{display:flex;justify-content:space-between;font-size:.85rem;padding:5px 0;color:var(--text-mid);}
+.bill-gst-row{display:flex;justify-content:space-between;font-size:.82rem;padding:5px 0;color:var(--text-light);}
+.bill-total-row{display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid var(--maroon);margin-top:6px;}
+.bill-total-label{font-family:var(--font-display);font-size:1.05rem;color:var(--maroon);font-weight:600;}
+.bill-total-amt{font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);font-weight:600;}
+.bill-payment-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;}
+.bill-paid{background:#E8F5E9;color:#2e7d32;}
+.bill-pending{background:#FFF9E6;color:#B8860B;}
+.bill-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;}
+.btn-print{flex:1;padding:11px;background:var(--maroon);color:var(--white);border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.88rem;font-weight:500;cursor:pointer;transition:background .2s;min-width:100px;}
+.btn-print:hover{background:var(--maroon-light);}
+.btn-pay-upi{flex:1;padding:11px;background:#10b981;color:var(--white);border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.88rem;font-weight:500;cursor:pointer;transition:background .2s;min-width:100px;}
+.btn-pay-upi:hover{background:#059669;}
+.btn-pay-cash{flex:1;padding:11px;background:var(--gold);color:var(--maroon-dark);border:none;border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.88rem;font-weight:600;cursor:pointer;transition:background .2s;min-width:100px;}
+.btn-pay-cash:hover{background:var(--gold-light);}
+
+/* UPI overlay */
+#upi-overlay{position:fixed;inset:0;background:rgba(44,24,16,.7);z-index:800;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);}
+.upi-box{background:var(--white);border-radius:var(--radius);padding:24px;max-width:340px;width:100%;text-align:center;}
+.upi-box h3{font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);margin-bottom:4px;}
+.upi-amount{font-family:var(--font-display);font-size:2rem;color:var(--maroon);font-weight:600;margin:12px 0;}
+.upi-qr{width:200px;height:200px;border-radius:10px;border:2px solid var(--border);margin:12px auto;display:block;}
+.upi-id-text{font-size:.78rem;color:var(--text-light);margin-bottom:12px;}
+
+/* Orders history table */
+.orders-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:0 1px 6px rgba(44,24,16,.07);}
+.orders-table th{background:var(--cream-dark);padding:10px 12px;text-align:left;font-size:.72rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;}
+.orders-table td{padding:10px 12px;font-size:.82rem;color:var(--text);border-bottom:1px solid var(--cream-dark);vertical-align:middle;}
+.orders-table tr:last-child td{border-bottom:none;}
+.orders-table tr:hover td{background:var(--cream);}
+
+/* Checkout modal */
+.checkout-form{display:flex;flex-direction:column;gap:12px;}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.cf-field label{display:block;font-size:.76rem;font-weight:600;color:var(--text-mid);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em;}
+.cf-field input,.cf-field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-family:var(--font-body);font-size:.88rem;outline:none;transition:border-color .2s;color:var(--text);background:var(--white);}
+.cf-field input:focus,.cf-field select:focus{border-color:var(--maroon);}
+.cf-summary{background:var(--cream);border-radius:var(--radius-sm);padding:12px;font-size:.82rem;}
+.cf-summary-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--text-mid);}
+.cf-summary-total{display:flex;justify-content:space-between;padding:8px 0 0;border-top:1px solid var(--border-gold);margin-top:6px;font-family:var(--font-display);font-size:1.05rem;color:var(--maroon);font-weight:600;}
+
+/* Print styles */
+@media print {
+  nav,#room-bar,#cart-bar,#cart-overlay,#cart-drawer,.billing-tabs,.billing-top,.bill-actions,
+  #loading,#toast,.nav-tab,button:not(.no-print){display:none!important;}
+  body{background:white!important;}
+  .bill-preview{border:none!important;box-shadow:none!important;padding:0!important;}
+  #billing-view{padding:0!important;}
+  .billing-section{display:block!important;}
+  #print-target{display:block!important;}
+}
+
 </style>
 </head>
 <body>
@@ -719,6 +822,7 @@ input:checked+.toggle-slider:before{transform:translateX(20px);}
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="switchView('menu')" id="tab-menu">Menu</button>
     <button class="nav-tab" onclick="openKitchenModal()" id="tab-kitchen">Kitchen</button>
+    <button class="nav-tab" onclick="openBillingModal()" id="tab-billing">Billing</button>
     <button class="nav-tab" onclick="openAdminModal()" id="tab-admin">Admin</button>
   </div>
   <div class="nav-right">
@@ -796,6 +900,127 @@ input:checked+.toggle-slider:before{transform:translateX(20px);}
         <button class="am-save" onclick="saveItem()">Save</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- BILLING PIN MODAL -->
+<div id="billing-modal" style="display:none;">
+  <div class="km-box">
+    <h3>Billing Access</h3>
+    <p>Enter the staff PIN to access billing</p>
+    <input class="km-input" type="password" id="billing-pin" placeholder="Enter PIN (default: 1234)" maxlength="6"/>
+    <button class="km-btn" onclick="verifyBillingPin()">Access Billing</button>
+    <button class="km-cancel" onclick="cancelBillingAccess()">Cancel</button>
+  </div>
+</div>
+
+<!-- UPI OVERLAY -->
+<div id="upi-overlay" style="display:none;">
+  <div class="upi-box">
+    <h3>💳 UPI Payment</h3>
+    <div style="font-size:.78rem;color:var(--text-light);margin-bottom:6px;" id="upi-hotel-name">Riversongs Hotel</div>
+    <div class="upi-amount" id="upi-amount">₹0</div>
+    <img class="upi-qr" id="upi-qr-img" src="" alt="UPI QR Code"/>
+    <div class="upi-id-text" id="upi-id-display"></div>
+    <p style="font-size:.75rem;color:var(--text-light);margin-bottom:14px;">Scan with GPay, PhonePe, Paytm or any UPI app</p>
+    <button class="btn-print" onclick="confirmUpiPayment()" style="width:100%;margin-bottom:8px;">✅ Payment Received — Mark Paid</button>
+    <button class="am-cancel-btn" onclick="closeUpiOverlay()" style="width:100%;">Cancel</button>
+  </div>
+</div>
+
+<!-- CHECKIN MODAL -->
+<div id="checkin-modal" style="display:none;">
+  <div style="position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:910;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);">
+    <div style="background:var(--white);border-radius:var(--radius);padding:24px;max-width:460px;width:100%;max-height:90vh;overflow-y:auto;">
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);margin-bottom:16px;">🛎 Guest Check-In</h3>
+      <div class="checkout-form">
+        <div class="cf-row">
+          <div class="cf-field"><label>Room Number *</label><input id="ci-room" placeholder="e.g. 101"/></div>
+          <div class="cf-field"><label>Room Rate / Night (₹)</label><input type="number" id="ci-rate" placeholder="e.g. 2500" min="0"/></div>
+        </div>
+        <div class="cf-field"><label>Guest Name *</label><input id="ci-name" placeholder="Full name"/></div>
+        <div class="cf-row">
+          <div class="cf-field"><label>Phone</label><input id="ci-phone" placeholder="+91 9999..."/></div>
+          <div class="cf-field"><label>ID Proof</label><input id="ci-id" placeholder="Aadhar / Passport no."/></div>
+        </div>
+        <div class="cf-row">
+          <div class="cf-field"><label>Adults</label><input type="number" id="ci-adults" value="1" min="1"/></div>
+          <div class="cf-field"><label>Children</label><input type="number" id="ci-children" value="0" min="0"/></div>
+        </div>
+        <div class="cf-field"><label>Notes</label><input id="ci-notes" placeholder="Special requests..."/></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="am-cancel-btn" onclick="closeCheckinModal()">Cancel</button>
+        <button class="am-save" onclick="saveCheckin()">✅ Check In</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT MODAL -->
+<div id="checkout-modal" style="display:none;">
+  <div style="position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:910;display:flex;align-items:flex-end;justify-content:center;padding:0;backdrop-filter:blur(3px);">
+    <div style="background:var(--white);border-radius:var(--radius) var(--radius) 0 0;padding:24px;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;">
+      <h3 style="font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);margin-bottom:16px;">🧾 Generate Bill</h3>
+      <div id="checkout-summary"></div>
+      <div class="checkout-form">
+        <div class="cf-row">
+          <div class="cf-field"><label>GST Rate (%)</label><input type="number" id="cf-gst" value="18" min="0" max="28" oninput="recalcCheckout()"/></div>
+          <div class="cf-field"><label>Discount (₹)</label><input type="number" id="cf-discount" value="0" min="0" oninput="recalcCheckout()"/></div>
+        </div>
+        <div class="cf-field"><label>Other Charges (₹) <span style="font-weight:400;text-transform:none;font-size:.7rem;">(laundry, minibar…)</span></label><input type="number" id="cf-other" value="0" min="0" oninput="recalcCheckout()"/></div>
+        <div class="cf-field"><label>Notes</label><input type="text" id="cf-notes" placeholder="Any additional notes"/></div>
+        <div id="cf-live-summary" class="cf-summary"></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="am-cancel-btn" onclick="closeCheckoutModal()">Cancel</button>
+        <button class="am-save" onclick="generateBill()">Generate Bill →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ROOM ORDERS MODAL -->
+<div id="room-orders-modal" style="display:none;">
+  <div style="position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:910;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);">
+    <div style="background:var(--white);border-radius:var(--radius);padding:24px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h3 style="font-family:var(--font-display);font-size:1.3rem;color:var(--maroon);" id="rom-title">Order History</h3>
+        <button onclick="closeRoomOrdersModal()" style="background:none;border:none;font-size:1.4rem;color:var(--text-light);cursor:pointer;">✕</button>
+      </div>
+      <div id="room-orders-content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- BILL VIEW MODAL -->
+<div id="bill-view-modal" style="display:none;">
+  <div style="position:fixed;inset:0;background:rgba(44,24,16,.6);z-index:910;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(3px);">
+    <div style="background:var(--white);border-radius:var(--radius);padding:0;max-width:520px;width:100%;max-height:92vh;overflow-y:auto;" id="bill-view-content">
+    </div>
+  </div>
+</div>
+
+<!-- BILLING VIEW -->
+<div id="billing-view" style="display:none;">
+  <div class="billing-top">
+    <h2>🏨 Hotel Billing</h2>
+    <button class="add-new-btn" onclick="openCheckinModal()">+ Check In Guest</button>
+  </div>
+  <div class="billing-tabs">
+    <button class="billing-tab active" onclick="switchBillingTab('guests')" id="btab-guests">🛎 Guests</button>
+    <button class="billing-tab" onclick="switchBillingTab('bills')" id="btab-bills">🧾 Bills</button>
+  </div>
+  <div class="billing-section active" id="bsec-guests">
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+      <button class="filter-btn active" id="gf-all" onclick="setGuestFilter('all')">All</button>
+      <button class="filter-btn" id="gf-in" onclick="setGuestFilter('checked_in')">✅ In-House</button>
+      <button class="filter-btn" id="gf-out" onclick="setGuestFilter('checked_out')">🚪 Checked Out</button>
+    </div>
+    <div id="guests-list"><div class="cart-empty"><span class="cart-empty-icon">🛎️</span>No guests found</div></div>
+  </div>
+  <div class="billing-section" id="bsec-bills">
+    <div id="bills-list"><div class="cart-empty"><span class="cart-empty-icon">🧾</span>No bills generated yet</div></div>
   </div>
 </div>
 
@@ -1232,16 +1457,19 @@ function showView(view) {
   document.getElementById('confirm-view').style.display = view==='confirm' ? 'flex' : 'none';
   document.getElementById('kitchen-view').style.display = view==='kitchen' ? 'block' : 'none';
   document.getElementById('admin-view').style.display = view==='admin' ? 'block' : 'none';
-  document.getElementById('room-bar').style.display = (view==='kitchen'||view==='admin') ? 'none' : 'flex';
+  document.getElementById('billing-view').style.display = view==='billing' ? 'block' : 'none';
+  document.getElementById('room-bar').style.display = (view==='kitchen'||view==='admin'||view==='billing') ? 'none' : 'flex';
   document.getElementById('cart-bar').classList.remove('visible');
 
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
   if (view==='menu' || view==='confirm') document.getElementById('tab-menu').classList.add('active');
   if (view==='kitchen') document.getElementById('tab-kitchen').classList.add('active');
   if (view==='admin') document.getElementById('tab-admin').classList.add('active');
+  if (view==='billing') document.getElementById('tab-billing').classList.add('active');
 
   if (view==='menu') updateCartUI();
   if (view==='kitchen') loadKitchenOrders();
+  if (view==='billing') loadGuests();
 }
 
 function switchView(view) {
@@ -1673,6 +1901,422 @@ function toast(msg) {
   clearTimeout(el._timer);
   el._timer = setTimeout(() => el.classList.remove('show'), 3000);
 }
+
+// ═══════════════════════════════════════════════════════════
+// ── BILLING MODULE ─────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════
+
+let billingAccessGranted = false;
+let currentCheckoutGuest = null;
+let currentCheckoutFoodTotal = 0;
+let currentBillId = null;
+let upiSettings = { id: localStorage.getItem('rs_upi_id') || '', name: localStorage.getItem('rs_upi_name') || 'Riversongs Hotel' };
+let guestFilter = 'all';
+
+// ── PIN ────────────────────────────────────────────────────
+function openBillingModal() {
+  if (billingAccessGranted) { showView('billing'); return; }
+  document.getElementById('billing-modal').style.display = 'flex';
+  document.getElementById('billing-pin').value = '';
+  setTimeout(() => document.getElementById('billing-pin').focus(), 100);
+}
+function cancelBillingAccess() { document.getElementById('billing-modal').style.display = 'none'; }
+function verifyBillingPin() {
+  const pin = document.getElementById('billing-pin').value;
+  if (pin === KITCHEN_PIN) {
+    document.getElementById('billing-modal').style.display = 'none';
+    billingAccessGranted = true;
+    showView('billing');
+  } else {
+    toast('Incorrect PIN.');
+    document.getElementById('billing-pin').value = '';
+    document.getElementById('billing-pin').focus();
+  }
+}
+document.getElementById('billing-pin').addEventListener('keyup', e => { if (e.key === 'Enter') verifyBillingPin(); });
+
+// ── TABS ───────────────────────────────────────────────────
+function switchBillingTab(tab) {
+  document.querySelectorAll('.billing-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.billing-section').forEach(s => s.classList.remove('active'));
+  document.getElementById(`btab-${tab}`).classList.add('active');
+  document.getElementById(`bsec-${tab}`).classList.add('active');
+  if (tab === 'guests') loadGuests();
+  if (tab === 'bills') loadBills();
+}
+
+// ── LOAD GUESTS ────────────────────────────────────────────
+async function loadGuests() {
+  const el = document.getElementById('guests-list');
+  el.innerHTML = '<div class="cart-empty"><span class="cart-empty-icon" style="font-size:1.5rem">⏳</span>Loading...</div>';
+  try {
+    const url = guestFilter === 'all' ? '/api/guests' : `/api/guests?status=${guestFilter}`;
+    const res = await fetch(url);
+    const guests = await res.json();
+    if (!guests.length) { el.innerHTML = '<div class="cart-empty"><span class="cart-empty-icon">🛎️</span>No guests found</div>'; return; }
+    el.innerHTML = guests.map(g => renderGuestCard(g)).join('');
+  } catch(e) { el.innerHTML = '<div class="cart-empty">Failed to load guests</div>'; }
+}
+
+function renderGuestCard(g) {
+  const nights = g.check_in ? Math.max(1, Math.ceil((new Date() - new Date(g.check_in)) / 86400000)) : 0;
+  const ciDate = g.check_in ? new Date(g.check_in).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  const coDate = g.check_out ? new Date(g.check_out).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  const statusClass = g.status === 'checked_in' ? 'checked-in' : 'checked-out';
+  const badge = g.status === 'checked_in'
+    ? '<span class="status-badge badge-delivered" style="background:#E8F5E9;color:#2e7d32;">✅ In-House</span>'
+    : '<span class="status-badge badge-cancelled">🚪 Checked Out</span>';
+  const actions = g.status === 'checked_in' ? `
+    <button class="btn-view-orders" onclick="viewRoomOrders('${g.room_number}', '${g.guest_name.replace(/'/g,"\\'")}')">📋 Orders</button>
+    <button class="btn-checkout" onclick="openCheckout('${g._id}')">🧾 Checkout</button>
+  ` : `
+    <button class="btn-view-orders" onclick="viewRoomOrders('${g.room_number}', '${g.guest_name.replace(/'/g,"\\'")}')">📋 Orders</button>
+  `;
+  return `
+    <div class="guest-card ${statusClass}">
+      <div class="gc-header">
+        <div>
+          <div class="gc-room">Room ${g.room_number}</div>
+          <div class="gc-name">${g.guest_name}</div>
+          <div class="gc-meta">${g.phone || '—'} · ${g.adults} adult${g.adults!==1?'s':''} ${g.children?'· '+g.children+' child':''}</div>
+          <div class="gc-meta">Check-in: ${ciDate}${g.status==='checked_out'?' · Check-out: '+coDate:' · '+nights+' night'+(nights!==1?'s':'')}</div>
+        </div>
+        <div style="text-align:right;">${badge}</div>
+      </div>
+      <div class="gc-footer">
+        <div class="gc-rate">₹${(g.room_rate||0).toLocaleString('en-IN')} <span style="font-size:.72rem;font-family:var(--font-body);color:var(--text-light);">/night</span></div>
+        <div class="gc-actions">${actions}</div>
+      </div>
+    </div>`;
+}
+
+function setGuestFilter(f) {
+  guestFilter = f;
+  document.querySelectorAll('[id^="gf-"]').forEach(b => b.classList.remove('active'));
+  const map = { all: 'gf-all', checked_in: 'gf-in', checked_out: 'gf-out' };
+  const el = document.getElementById(map[f]);
+  if (el) el.classList.add('active');
+  loadGuests();
+}
+
+// ── CHECK-IN MODAL ─────────────────────────────────────────
+function openCheckinModal() {
+  document.getElementById('checkin-modal').style.display = 'block';
+  document.getElementById('ci-room').value = '';
+  document.getElementById('ci-name').value = '';
+  document.getElementById('ci-phone').value = '';
+  document.getElementById('ci-id').value = '';
+  document.getElementById('ci-rate').value = '';
+  document.getElementById('ci-adults').value = '1';
+  document.getElementById('ci-children').value = '0';
+  document.getElementById('ci-notes').value = '';
+}
+function closeCheckinModal() { document.getElementById('checkin-modal').style.display = 'none'; }
+
+async function saveCheckin() {
+  const room = document.getElementById('ci-room').value.trim();
+  const name = document.getElementById('ci-name').value.trim();
+  if (!room || !name) { toast('Room number and guest name required'); return; }
+  try {
+    const res = await fetch('/api/guests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        room_number: room,
+        guest_name: name,
+        phone: document.getElementById('ci-phone').value.trim(),
+        id_proof: document.getElementById('ci-id').value.trim(),
+        room_rate: Number(document.getElementById('ci-rate').value) || 0,
+        adults: Number(document.getElementById('ci-adults').value) || 1,
+        children: Number(document.getElementById('ci-children').value) || 0,
+        notes: document.getElementById('ci-notes').value.trim(),
+      }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    closeCheckinModal();
+    toast(`✅ ${name} checked in to Room ${room}!`);
+    loadGuests();
+  } catch(e) { toast('Check-in failed: ' + e.message); }
+}
+
+// ── ROOM ORDERS MODAL ──────────────────────────────────────
+async function viewRoomOrders(room, guestName) {
+  document.getElementById('room-orders-modal').style.display = 'block';
+  document.getElementById('rom-title').textContent = `Room ${room} — ${guestName}`;
+  const el = document.getElementById('room-orders-content');
+  el.innerHTML = '<div class="cart-empty"><span style="font-size:1.5rem">⏳</span> Loading...</div>';
+  try {
+    const res = await fetch(`/api/rooms/${room}/orders`);
+    const data = await res.json();
+    if (!data.orders.length) { el.innerHTML = '<div class="cart-empty"><span class="cart-empty-icon">🍽️</span>No orders yet for this room</div>'; return; }
+    el.innerHTML = `
+      <table class="orders-table" style="margin-bottom:12px;">
+        <thead><tr><th>Order ID</th><th>Items</th><th>Amount</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody>
+          ${data.orders.map(o => `
+            <tr>
+              <td style="font-size:.72rem;color:var(--text-light);">#${String(o.id).slice(-6)}</td>
+              <td>${(o.items||[]).map(i=>`${i.item_name} ×${i.quantity}`).join(', ')}</td>
+              <td style="font-family:var(--font-display);color:var(--maroon);">₹${Number(o.total_amount).toFixed(0)}</td>
+              <td><span class="status-badge badge-${o.status}">${o.status}</span></td>
+              <td style="font-size:.72rem;color:var(--text-light);">${new Date(o.created_at).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+      <div style="display:flex;justify-content:flex-end;padding:8px 0;border-top:2px solid var(--border-gold);">
+        <span style="font-family:var(--font-display);font-size:1.1rem;color:var(--maroon);">Food Total: ₹${Number(data.food_total).toFixed(0)}</span>
+      </div>`;
+  } catch(e) { el.innerHTML = '<div class="cart-empty">Failed to load orders</div>'; }
+}
+function closeRoomOrdersModal() { document.getElementById('room-orders-modal').style.display = 'none'; }
+
+// ── CHECKOUT / BILL GENERATION ─────────────────────────────
+async function openCheckout(guestId) {
+  try {
+    const [gRes, oRes] = await Promise.all([
+      fetch(`/api/guests/${guestId}`),
+      fetch(`/api/guests/${guestId}`).then(() => {}).catch(()=>{}),
+    ]);
+    const guest = await gRes.json();
+    const oData = await (await fetch(`/api/rooms/${guest.room_number}/orders`)).json();
+    currentCheckoutGuest = guest;
+    currentCheckoutFoodTotal = oData.food_total || 0;
+
+    const nights = Math.max(1, Math.ceil((new Date() - new Date(guest.check_in)) / 86400000));
+    const roomCharges = (guest.room_rate || 0) * nights;
+
+    document.getElementById('checkout-summary').innerHTML = `
+      <div class="bill-preview" style="margin-bottom:14px;">
+        <div class="bill-info-row"><span class="bill-info-label">Guest</span><span class="bill-info-val">${guest.guest_name}</span></div>
+        <div class="bill-info-row"><span class="bill-info-label">Room</span><span class="bill-info-val">${guest.room_number}</span></div>
+        <div class="bill-info-row"><span class="bill-info-label">Check-In</span><span class="bill-info-val">${new Date(guest.check_in).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric'})}</span></div>
+        <div class="bill-info-row"><span class="bill-info-label">Nights</span><span class="bill-info-val">${nights} night${nights!==1?'s':''}</span></div>
+        <div class="bill-info-row"><span class="bill-info-label">Room Charges</span><span class="bill-info-val">₹${roomCharges.toLocaleString('en-IN')}</span></div>
+        <div class="bill-info-row"><span class="bill-info-label">Food & Dining</span><span class="bill-info-val">₹${Number(currentCheckoutFoodTotal).toFixed(0)}</span></div>
+      </div>`;
+
+    document.getElementById('cf-gst').value = '18';
+    document.getElementById('cf-discount').value = '0';
+    document.getElementById('cf-other').value = '0';
+    document.getElementById('cf-notes').value = '';
+    recalcCheckout();
+    document.getElementById('checkout-modal').style.display = 'block';
+  } catch(e) { toast('Failed to load guest data'); }
+}
+
+function recalcCheckout() {
+  if (!currentCheckoutGuest) return;
+  const nights = Math.max(1, Math.ceil((new Date() - new Date(currentCheckoutGuest.check_in)) / 86400000));
+  const roomCharges = (currentCheckoutGuest.room_rate || 0) * nights;
+  const food = currentCheckoutFoodTotal;
+  const other = Number(document.getElementById('cf-other').value) || 0;
+  const discount = Number(document.getElementById('cf-discount').value) || 0;
+  const gstRate = Number(document.getElementById('cf-gst').value) || 18;
+  const subtotal = roomCharges + food + other - discount;
+  const gst = (subtotal * gstRate) / 100;
+  const total = subtotal + gst;
+  document.getElementById('cf-live-summary').innerHTML = `
+    <div class="cf-summary-row"><span>Room (${nights}n × ₹${(currentCheckoutGuest.room_rate||0).toLocaleString('en-IN')})</span><span>₹${roomCharges.toLocaleString('en-IN')}</span></div>
+    <div class="cf-summary-row"><span>Food & Dining</span><span>₹${Number(food).toFixed(0)}</span></div>
+    ${other ? `<div class="cf-summary-row"><span>Other Charges</span><span>₹${other}</span></div>` : ''}
+    ${discount ? `<div class="cf-summary-row"><span style="color:#2e7d32;">Discount</span><span style="color:#2e7d32;">−₹${discount}</span></div>` : ''}
+    <div class="cf-summary-row"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+    <div class="cf-summary-row"><span>GST (${gstRate}%)</span><span>₹${gst.toFixed(2)}</span></div>
+    <div class="cf-summary-total"><span>Total</span><span>₹${total.toFixed(2)}</span></div>`;
+}
+
+function closeCheckoutModal() { document.getElementById('checkout-modal').style.display = 'none'; currentCheckoutGuest = null; }
+
+async function generateBill() {
+  if (!currentCheckoutGuest) return;
+  try {
+    const res = await fetch('/api/bills', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        guest_id: currentCheckoutGuest._id,
+        room_number: currentCheckoutGuest.room_number,
+        gst_rate: Number(document.getElementById('cf-gst').value) || 18,
+        discount: Number(document.getElementById('cf-discount').value) || 0,
+        other_charges: Number(document.getElementById('cf-other').value) || 0,
+        notes: document.getElementById('cf-notes').value.trim(),
+        payment_mode: 'Cash',
+      }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    const bill = await res.json();
+    closeCheckoutModal();
+    toast(`✅ Bill ${bill.bill_number} generated!`);
+    await loadGuests();
+    showBillView(bill);
+  } catch(e) { toast('Failed to generate bill: ' + e.message); }
+}
+
+// ── BILL VIEW & PRINT ──────────────────────────────────────
+function showBillView(bill) {
+  const nights = bill.check_in && bill.check_out
+    ? Math.max(1, Math.ceil((new Date(bill.check_out) - new Date(bill.check_in)) / 86400000)) : 1;
+
+  const html = `
+    <div style="padding:24px;" id="printable-bill">
+      <div class="bill-header-section">
+        <div class="bill-hotel-name">🏨 Riversongs</div>
+        <div class="bill-hotel-sub">Hotel &amp; In-Room Dining</div>
+        <div style="font-size:.72rem;color:var(--text-light);margin-top:4px;">Tax Invoice</div>
+      </div>
+      <div class="bill-info-row"><span class="bill-info-label">Bill No.</span><span class="bill-info-val" style="font-weight:700;">${bill.bill_number}</span></div>
+      <div class="bill-info-row"><span class="bill-info-label">Date</span><span class="bill-info-val">${new Date(bill.createdAt||Date.now()).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'})}</span></div>
+      <hr class="bill-divider"/>
+      <div class="bill-info-row"><span class="bill-info-label">Guest</span><span class="bill-info-val">${bill.guest_name}</span></div>
+      <div class="bill-info-row"><span class="bill-info-label">Room</span><span class="bill-info-val">${bill.room_number}</span></div>
+      <div class="bill-info-row"><span class="bill-info-label">Check-In</span><span class="bill-info-val">${bill.check_in ? new Date(bill.check_in).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</span></div>
+      <div class="bill-info-row"><span class="bill-info-label">Check-Out</span><span class="bill-info-val">${bill.check_out ? new Date(bill.check_out).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric'}) : '—'}</span></div>
+      <div class="bill-info-row"><span class="bill-info-label">Stay</span><span class="bill-info-val">${nights} night${nights!==1?'s':''}</span></div>
+      <hr class="bill-divider"/>
+      <div style="font-size:.75rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;">Charges Breakdown</div>
+      <div class="bill-line-item"><span class="bill-line-name">Room Charges (${nights}n × ₹${((bill.room_charges||0)/nights).toFixed(0)})</span><span class="bill-line-price">₹${Number(bill.room_charges||0).toFixed(2)}</span></div>
+      <div class="bill-line-item"><span class="bill-line-name">Food &amp; Dining</span><span class="bill-line-price">₹${Number(bill.food_charges||0).toFixed(2)}</span></div>
+      ${bill.other_charges > 0 ? `<div class="bill-line-item"><span class="bill-line-name">Other Charges</span><span class="bill-line-price">₹${Number(bill.other_charges).toFixed(2)}</span></div>` : ''}
+      ${bill.discount > 0 ? `<div class="bill-line-item"><span class="bill-line-name" style="color:#2e7d32;">Discount</span><span class="bill-line-price" style="color:#2e7d32;">−₹${Number(bill.discount).toFixed(2)}</span></div>` : ''}
+      ${(bill.orders||[]).length > 0 ? `
+      <div style="margin:12px 0 6px;font-size:.73rem;font-weight:700;color:var(--text-light);text-transform:uppercase;letter-spacing:.05em;">Food Order Details</div>
+      ${(bill.orders||[]).map(o => `
+        <div style="font-size:.78rem;color:var(--text-mid);padding:3px 0;">${(o.items||[]).map(i=>`${i.item_name} ×${i.quantity}`).join(', ')} <span style="float:right;color:var(--maroon);">₹${Number(o.total_amount||0).toFixed(0)}</span></div>
+      `).join('')}` : ''}
+      <hr class="bill-divider"/>
+      <div class="bill-subtotal-row"><span>Subtotal</span><span>₹${Number(bill.subtotal||0).toFixed(2)}</span></div>
+      <div class="bill-gst-row"><span>GST (${bill.gst_rate||18}%)</span><span>₹${Number(bill.gst_amount||0).toFixed(2)}</span></div>
+      <div class="bill-total-row"><span class="bill-total-label">Total Amount</span><span class="bill-total-amt">₹${Number(bill.total_amount||0).toFixed(2)}</span></div>
+      <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+        <span class="bill-payment-badge ${bill.payment_status==='paid'?'bill-paid':'bill-pending'}">${bill.payment_status === 'paid' ? '✅ PAID — '+bill.payment_mode : '⏳ PAYMENT PENDING'}</span>
+      </div>
+      ${bill.notes ? `<div style="margin-top:10px;font-size:.78rem;color:var(--text-light);font-style:italic;">"${bill.notes}"</div>` : ''}
+      <div style="margin-top:20px;text-align:center;font-size:.72rem;color:var(--text-light);border-top:1px dashed var(--border-gold);padding-top:12px;">Thank you for staying at Riversongs!<br>We hope to see you again.</div>
+    </div>
+    <div class="bill-actions" style="padding:0 24px 24px;">
+      <button class="btn-print" onclick="printBill()">🖨️ Print / PDF</button>
+      ${bill.payment_status !== 'paid' ? `
+      <button class="btn-pay-upi" onclick="openUpiPayment('${bill._id}',${bill.total_amount})">📱 UPI Pay</button>
+      <button class="btn-pay-cash" onclick="markBillPaid('${bill._id}','Cash')">💵 Cash Paid</button>
+      ` : ''}
+      <button class="am-cancel-btn" onclick="closeBillView()" style="flex:none;min-width:70px;">Close</button>
+    </div>`;
+
+  document.getElementById('bill-view-content').innerHTML = html;
+  document.getElementById('bill-view-modal').style.display = 'block';
+  currentBillId = bill._id;
+}
+
+function closeBillView() { document.getElementById('bill-view-modal').style.display = 'none'; currentBillId = null; }
+
+function printBill() {
+  const content = document.getElementById('printable-bill').innerHTML;
+  const win = window.open('', '_blank', 'width=600,height=800');
+  win.document.write(`<!DOCTYPE html><html><head><title>Invoice — Riversongs</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:#fff;color:#2C1810;padding:20px;max-width:520px;margin:0 auto;}
+    .bill-hotel-name{font-family:'Playfair Display',serif;font-size:1.6rem;color:#6B1F2A;text-align:center;}
+    .bill-hotel-sub{font-size:.75rem;color:#9B7B6A;letter-spacing:.08em;text-transform:uppercase;text-align:center;}
+    .bill-header-section{text-align:center;padding-bottom:14px;border-bottom:2px dashed #C9952A44;margin-bottom:14px;}
+    .bill-info-row{display:flex;justify-content:space-between;font-size:.82rem;margin-bottom:5px;}
+    .bill-info-label{color:#9B7B6A;}.bill-info-val{font-weight:500;text-align:right;}
+    .bill-divider{border:none;border-top:1px dashed #C9952A55;margin:10px 0;}
+    .bill-line-item{display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0;border-bottom:1px solid #F0E8DA;}
+    .bill-line-name{color:#6B4C3B;flex:1;}.bill-line-price{font-weight:500;white-space:nowrap;}
+    .bill-subtotal-row,.bill-gst-row{display:flex;justify-content:space-between;font-size:.82rem;padding:4px 0;color:#6B4C3B;}
+    .bill-total-row{display:flex;justify-content:space-between;padding:10px 0;border-top:2px solid #6B1F2A;margin-top:6px;}
+    .bill-total-label,.bill-total-amt{font-family:'Playfair Display',serif;font-size:1.1rem;color:#6B1F2A;font-weight:600;}
+    .bill-payment-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.75rem;font-weight:600;}
+    .bill-paid{background:#E8F5E9;color:#2e7d32;}.bill-pending{background:#FFF9E6;color:#B8860B;}
+  </style></head><body>${content}</body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => { win.print(); }, 500);
+}
+
+// ── LOAD BILLS ─────────────────────────────────────────────
+async function loadBills() {
+  const el = document.getElementById('bills-list');
+  el.innerHTML = '<div class="cart-empty"><span style="font-size:1.5rem">⏳</span> Loading...</div>';
+  try {
+    const res = await fetch('/api/bills');
+    const bills = await res.json();
+    if (!bills.length) { el.innerHTML = '<div class="cart-empty"><span class="cart-empty-icon">🧾</span>No bills generated yet</div>'; return; }
+    el.innerHTML = `<table class="orders-table">
+      <thead><tr><th>Bill No.</th><th>Guest / Room</th><th>Amount</th><th>Payment</th><th>Date</th><th></th></tr></thead>
+      <tbody>
+        ${bills.map(b => `<tr>
+          <td style="font-weight:600;font-size:.78rem;">${b.bill_number}</td>
+          <td><div style="font-weight:500;">${b.guest_name}</div><div style="font-size:.72rem;color:var(--text-light);">Room ${b.room_number}</div></td>
+          <td style="font-family:var(--font-display);color:var(--maroon);">₹${Number(b.total_amount).toFixed(0)}</td>
+          <td><span class="bill-payment-badge ${b.payment_status==='paid'?'bill-paid':'bill-pending'}">${b.payment_status==='paid'?'✅ '+b.payment_mode:'⏳ Pending'}</span></td>
+          <td style="font-size:.72rem;color:var(--text-light);">${new Date(b.createdAt).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}</td>
+          <td><button class="btn-view-orders" onclick="openExistingBill('${b._id}')">View</button></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
+  } catch(e) { el.innerHTML = '<div class="cart-empty">Failed to load bills</div>'; }
+}
+
+async function openExistingBill(billId) {
+  try {
+    const res = await fetch(`/api/bills/${billId}`);
+    const bill = await res.json();
+    showBillView(bill);
+  } catch(e) { toast('Failed to load bill'); }
+}
+
+// ── UPI PAYMENT ────────────────────────────────────────────
+function openUpiPayment(billId, amount) {
+  const upiId = localStorage.getItem('rs_upi_id') || '';
+  const upiName = localStorage.getItem('rs_upi_name') || 'Riversongs Hotel';
+  if (!upiId) {
+    const id = prompt('Enter your UPI ID (e.g. riversongs@upi):\n(This will be saved for future use)');
+    if (!id) return;
+    localStorage.setItem('rs_upi_id', id);
+    const name = prompt('Enter store name for UPI:') || 'Riversongs Hotel';
+    localStorage.setItem('rs_upi_name', name);
+  }
+  const finalUpiId = localStorage.getItem('rs_upi_id');
+  const finalName = localStorage.getItem('rs_upi_name') || 'Riversongs Hotel';
+  const upiUrl = `upi://pay?pa=${finalUpiId}&pn=${encodeURIComponent(finalName)}&am=${amount}&cu=INR&tn=${encodeURIComponent('Hotel Bill Payment')}`;
+  const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}`;
+  document.getElementById('upi-amount').textContent = `₹${Number(amount).toFixed(2)}`;
+  document.getElementById('upi-hotel-name').textContent = finalName;
+  document.getElementById('upi-qr-img').src = qrApi;
+  document.getElementById('upi-id-display').textContent = `UPI ID: ${finalUpiId}`;
+  document.getElementById('upi-overlay').style.display = 'flex';
+  currentBillId = billId;
+}
+
+function closeUpiOverlay() { document.getElementById('upi-overlay').style.display = 'none'; }
+
+async function confirmUpiPayment() {
+  if (!currentBillId) return;
+  await markBillPaid(currentBillId, 'UPI');
+  closeUpiOverlay();
+}
+
+async function markBillPaid(billId, mode) {
+  try {
+    const res = await fetch(`/api/bills/${billId}/pay`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payment_mode: mode }),
+    });
+    if (!res.ok) throw new Error('Failed');
+    toast(`✅ Payment recorded — ${mode}`);
+    closeBillView();
+    loadBills();
+    // Re-open bill to show paid status
+    const updated = await fetch(`/api/bills/${billId}`);
+    const bill = await updated.json();
+    showBillView(bill);
+  } catch(e) { toast('Failed to update payment'); }
+}
+
 </script>
 </body>
 </html>
