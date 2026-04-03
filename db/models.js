@@ -51,8 +51,49 @@ orderSchema.pre('save', function(next) {
   next();
 });
 
+// ── GUEST CHECK-IN ────────────────────────────────────────
+const guestSchema = new mongoose.Schema({
+  room_number: { type: String, required: true },
+  guest_name: { type: String, required: true },
+  phone: { type: String, default: null },
+  id_proof: { type: String, default: null },
+  adults: { type: Number, default: 1 },
+  children: { type: Number, default: 0 },
+  check_in: { type: Date, default: Date.now },
+  check_out: { type: Date, default: null },
+  status: { type: String, enum: ['checked_in', 'checked_out'], default: 'checked_in' },
+  room_rate: { type: Number, default: 0 },
+  notes: { type: String, default: null },
+}, { timestamps: true });
+const Guest = mongoose.model('Guest', guestSchema);
+
+// ── BILL ──────────────────────────────────────────────────
+const billSchema = new mongoose.Schema({
+  bill_number: { type: String, unique: true },
+  guest_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Guest' },
+  room_number: { type: String, required: true },
+  guest_name: { type: String },
+  check_in: { type: Date },
+  check_out: { type: Date },
+  room_charges: { type: Number, default: 0 },
+  food_charges: { type: Number, default: 0 },
+  other_charges: { type: Number, default: 0 },
+  subtotal: { type: Number, default: 0 },
+  gst_rate: { type: Number, default: 18 },
+  gst_amount: { type: Number, default: 0 },
+  discount: { type: Number, default: 0 },
+  total_amount: { type: Number, default: 0 },
+  payment_mode: { type: String, enum: ['Cash', 'UPI', 'Card', 'Credit'], default: 'Cash' },
+  payment_status: { type: String, enum: ['pending', 'paid'], default: 'pending' },
+  orders: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Order' }],
+  notes: { type: String, default: null },
+}, { timestamps: true });
+const Bill = mongoose.model('Bill', billSchema);
+
 module.exports = {
   Category: mongoose.model('Category', categorySchema),
   MenuItem: mongoose.model('MenuItem', menuItemSchema),
   Order: mongoose.model('Order', orderSchema),
+  Guest,
+  Bill,
 };
